@@ -1,118 +1,60 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
+import 'react-native-gesture-handler';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator} from 'react-native';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {ApolloProvider} from '@apollo/client';
+import {client} from './src/graphql/client';
+import TrackPlayer, {Capability} from 'react-native-track-player';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import MainStackNavigator from './src/navigators/MainStackNavigator';
+import {PlayerContextProvider} from './src/context/PlayerContext';
+import {DBProvider} from './src/context/DBContext';
 
-declare const global: {HermesInternal: null | {}};
+function App() {
+  const [isReady, setIsReady] = useState<boolean>(false);
 
-const App = () => {
+  useEffect(() => {
+    (async () => {
+      await TrackPlayer.setupPlayer().then(() => {
+        console.log('player is setup');
+
+        TrackPlayer.updateOptions({
+          // Whether the player should stop running when the app is closed on Android
+          stopWithApp: false,
+          capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward,
+          ],
+          jumpInterval: 30,
+        });
+
+        setIsReady(true);
+      });
+    })();
+
+    return () => {
+      TrackPlayer.destroy();
+    };
+  }, []);
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <DBProvider>
+      <ApolloProvider client={client}>
+        {isReady ? (
+          <PlayerContextProvider>
+            <NavigationContainer>
+              <MainStackNavigator />
+            </NavigationContainer>
+          </PlayerContextProvider>
+        ) : (
+          <ActivityIndicator />
+        )}
+      </ApolloProvider>
+    </DBProvider>
   );
-};
-
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+}
 
 export default App;
