@@ -43,16 +43,6 @@ const SearchStackNavigator = () => {
         headerBackTitle: 'Back',
       }}>
       <SearchStack.Screen name="Search" component={SearchScreen} />
-      <SearchStack.Screen
-        name="PodcastDetails"
-        component={PodcastDetailsScreen}
-        options={{headerTitle: ''}}
-      />
-      <SearchStack.Screen
-        name="EpisodeDetails"
-        component={EpisodeDetailsScreen}
-        options={{headerTitle: ''}}
-      />
     </SearchStack.Navigator>
   );
 };
